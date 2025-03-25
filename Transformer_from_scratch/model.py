@@ -17,9 +17,9 @@ class InputEmbeddings(nn.Module):
 class PositionalEmbedding(nn.Module):
     def __init__(self, d_model: int, seq_len: int, dropout:float) -> None:
         super().__init__()
-        self.d_model = self.d_model 
+        self.d_model = d_model 
         self.seq_len = seq_len
-        self.dropout = dropout
+        self.dropout = nn.Dropout(dropout)
 
         #Create a matrix of shape (seq_len, d_model)
         pos_emd = torch.zeros(seq_len, d_model)
@@ -31,14 +31,14 @@ class PositionalEmbedding(nn.Module):
         pos_emd[:, 0::2] = torch.sin(position * div_term)
         pos_emd[:, 1::2] = torch.cos(position * div_term)
 
-        self.pos_emd = pos_emd.unsqueeze(0) # (1, seq_len, d_model)
+        pos_emd = pos_emd.unsqueeze(0) # (1, seq_len, d_model)
 
         # to transfer values to gpu and not be used in training
         # https://www.youtube.com/watch?v=PetlIokI9Ao
         self.register_buffer('pos_emd', pos_emd)
 
     def forward(self, x):
-        x = x + (self.pos_end[:, :x.shape[1], :]).requires_grad_(False)
+        x = x + (self.pos_emd[:, :x.shape[1], :]).requires_grad_(False)
         return self.dropout(x)
     
 class LayerNormalization(nn.Module):
